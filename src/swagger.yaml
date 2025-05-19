@@ -1,0 +1,223 @@
+openapi: 3.0.0
+info:
+  title: TaskTrackr API
+  version: 1.0.0
+  description: API for TaskTrackr To-Do List App
+servers:
+  - url: http://localhost:5000/api
+paths:
+  /auth/register:
+    post:
+      summary: Register a new user
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                email: { type: string }
+                password: { type: string }
+                role: { type: string, enum: ['USER', 'ADMIN'] }
+      responses:
+        '201': { description: User registered }
+        '400': { description: Bad request }
+  /auth/login:
+    post:
+      summary: Login and get JWT
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                email: { type: string }
+                password: { type: string }
+      responses:
+        '200': { description: JWT token }
+        '401': { description: Invalid credentials }
+  /auth/token:
+    post:
+      summary: Generate JWT (demo)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                email: { type: string }
+                role: { type: string }
+      responses:
+        '200': { description: JWT token }
+        '404': { description: User not found }
+  /lists:
+    get:
+      summary: Get user's lists (paginated)
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: query
+          name: limit
+          schema: { type: integer }
+        - in: query
+          name: skip
+          schema: { type: integer }
+      responses:
+        '200': { description: List of lists }
+        '401': { description: Unauthorized }
+    post:
+      summary: Create a list
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name: { type: string }
+                color: { type: string }
+      responses:
+        '201': { description: List created }
+        '400': { description: Bad request }
+  /lists/{id}:
+    put:
+      summary: Update a list
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: { type: string }
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name: { type: string }
+                color: { type: string }
+      responses:
+        '200': { description: List updated }
+        '404': { description: List not found }
+    delete:
+      summary: Delete a list
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: { type: string }
+      responses:
+        '200': { description: List deleted }
+        '404': { description: List not found }
+  /tasks/list/{listId}:
+    get:
+      summary: Get tasks for a list (paginated)
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: listId
+          required: true
+          schema: { type: string }
+        - in: query
+          name: limit
+          schema: { type: integer }
+        - in: query
+          name: skip
+          schema: { type: integer }
+      responses:
+        '200': { description: List of tasks }
+        '404': { description: List not found }
+  /tasks:
+    post:
+      summary: Create a task
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                title: { type: string }
+                dueDate: { type: string, format: date }
+                listId: { type: string }
+      responses:
+        '201': { description: Task created }
+        '400': { description: Bad request }
+  /tasks/{id}:
+    put:
+      summary: Update a task
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: { type: string }
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                title: { type: string }
+                dueDate: { type: string, format: date }
+                completed: { type: boolean }
+      responses:
+        '200': { description: Task updated }
+        '404': { description: Task not found }
+    delete:
+      summary: Delete a task
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: { type: string }
+      responses:
+        '200': { description: Task deleted }
+        '404': { description: Task not found }
+  /users:
+    get:
+      summary: Get all users (admin only, paginated)
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: query
+          name: limit
+          schema: { type: integer }
+        - in: query
+          name: skip
+          schema: { type: integer }
+      responses:
+        '200': { description: List of users }
+        '403': { description: Forbidden }
+  /users/{id}:
+    delete:
+      summary: Delete a user and their data (admin only)
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: { type: string }
+      responses:
+        '200': { description: User deleted }
+        '404': { description: User not found }
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT

@@ -5,7 +5,7 @@ const jwt = require('jsonwebtoken');
 const User = require('../models/User');
 
 router.post('/register', async (req, res) => {
-  const { email, password, role } = req.body;
+  const { email, password } = req.body;
   if (!email || !password) {
     return res.status(400).json({ message: 'Email and password required' });
   }
@@ -16,11 +16,7 @@ router.post('/register', async (req, res) => {
       return res.status(400).json({ message: 'Email already exists' });
     }
 
-    const user = new User({
-      email,
-      password,
-      role: role && role === 'ADMIN' ? 'ADMIN' : 'USER',
-    });
+    const user = new User({ email, password });
     await user.save();
 
     res.status(201).json({ message: 'User registered' });
@@ -42,9 +38,9 @@ router.post('/login', async (req, res) => {
     }
 
     const token = jwt.sign(
-      { userId: user._id, role: user.role },
+      { userId: user._id, role: user.role, email: user.email },
       process.env.JWT_SECRET,
-      { expiresIn: '1m' }
+      { expiresIn: '5m' }
     );
     res.status(200).json({ token });
   } catch (error) {
@@ -61,7 +57,7 @@ router.post('/token', async (req, res) => {
     }
 
     const token = jwt.sign(
-      { userId: user._id, role: role || user.role },
+      { userId: user._id, role: role || user.role, email: user.email },
       process.env.JWT_SECRET,
       { expiresIn: '1m' }
     );
