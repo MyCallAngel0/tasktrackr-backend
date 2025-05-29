@@ -9,7 +9,7 @@ router.get('/', auth('ADMIN'), async (req, res) => {
   const { limit = 10, skip = 0 } = req.query;
   try {
     const users = await User.find()
-      .select('email role createdAt')
+      .select('email role createdAt lastLoggedIn')
       .limit(Number(limit))
       .skip(Number(skip));
     res.status(200).json(users);
